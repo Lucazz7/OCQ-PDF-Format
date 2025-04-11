@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { LaudoAnaliseProps } from "../../components/LaudoAnalise";
 
 export const pdfApi = createApi({
   reducerPath: "pdfApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3000/api" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:30032/api" }),
   endpoints: (builder) => ({
-    uploadPdf: builder.mutation<Blob, FormData>({
+    uploadPdf: builder.mutation<LaudoAnaliseProps, FormData>({
       query: (formData) => ({
         url: "/upload",
         method: "POST",

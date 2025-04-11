@@ -1,9 +1,9 @@
 export default function Navbar() {
   return (
-    <div className="flex  w-full items-center py-2 px-4 md:px-3 z-10">
+    <div className="flex  w-full items-center py-2 px-4 md:px-3 z-10 fixed">
       <img
-        className="px-6 object-contain cursor-pointer w-32 "
-        src="https://ocq.com.br/wp-content/uploads/2021/12/OCQ-logo-2linhas-01.svg"
+        className="px-6 object-contain cursor-pointer w-32 mt-3 "
+        src="/OCQ-logo.svg"
         alt="logo"
         title="Logo OCQ"
       />
