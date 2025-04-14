@@ -59,7 +59,7 @@ export const PdfUpload = () => {
     if (!selectedFile) return;
 
     const formData = new FormData();
-    formData.append("pdf", selectedFile);
+    formData.append("file", selectedFile);
 
     try {
       await uploadPdf(formData).unwrap();
@@ -95,12 +95,14 @@ export const PdfUpload = () => {
     }
   };
 
+  console.log(laudoData);
+
   return (
     <div className="w-full flex h-full relative px-4">
       <div className="absolute inset-0 bg-[#42B186] [clip-path:polygon(100%_100%,0%_100%,100%_0%)] z-0" />
 
       {laudoData ? (
-        <div className="m-auto w-full md:h-11/12 overflow-auto max-w-6xl p-10 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col relative">
+        <div className="m-auto w-full h-9/12 md:h-11/12 overflow-y-auto max-w-6xl p-10 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col relative">
           <LaudoAnalise
             produto={laudoData.produto}
             lote={laudoData.lote}
@@ -120,12 +122,16 @@ export const PdfUpload = () => {
           </h2>
 
           {isLoading ? (
-            <Player
-              autoplay
-              loop
-              src={"/lottie/PDF-loading.json"}
-              className=" h-[220px] pe-4"
-            />
+            <div className="flex flex-col items-center gap-2">
+              <div className=" flex items-center bg-white p-2 py-6 shadow-xl justify-center rounded-lg relative">
+                <Player
+                  autoplay
+                  loop
+                  src={"/lottie/PDF-loading.json"}
+                  className=" h-[220px] pe-4"
+                />
+              </div>
+            </div>
           ) : selectedFile ? (
             <div className="mt-4 flex flex-col items-center h-full w-full">
               <div className="flex flex-col items-center gap-2">

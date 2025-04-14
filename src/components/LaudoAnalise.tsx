@@ -1,24 +1,7 @@
 import { useCallback, useRef } from "react";
+import { ILaudoAnnalistic } from "../interface/ILaudoAnnalistic";
 
-export interface LaudoAnaliseProps {
-  produto: string;
-  lote: string;
-  quantidade: string;
-  data_fabricacao: string;
-  data_validade: string;
-  nota_fiscal: string;
-  elaborado_por: string;
-  data_elaboracao: string;
-  componentes: Array<{
-    nome: string;
-    minimo: string;
-    maximo: string;
-    valor: string;
-    observacao: string;
-  }>;
-}
-
-export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
+export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
   produto,
   lote,
   quantidade,
@@ -38,27 +21,33 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
 
       const printStyles = `
         <style>
-          @media print {
-            body * {
-              visibility: hidden;
-            }
-            #laudoContent, #laudoContent * {
-              visibility: visible;
-            }
-            #laudoContent {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-              padding: 20px;
-            }
-            .no-print {
-              display: none !important;
-            }
-            
-            /* Cabeçalho */
+          body {
+            font-family: Arial, sans-serif;
+          }
+
+          body * {
+            visibility: hidden;
+          }
+
+          #laudoContent, #laudoContent * {
+            visibility: visible;
+          }
+
+          #laudoContent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+          }
+
+           /* Cabeçalho */
             #laudoContent .flex {
               display: flex !important;
+
             }
             #laudoContent .flex-row {
               flex-direction: row !important;
@@ -73,7 +62,7 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
             
             /* Logo */
             #laudoContent img {
-              height: 120px !important;
+              height: 100px !important;
               object-fit: contain !important;
             }
             
@@ -90,46 +79,54 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
             #laudoContent .hidden {
               display: block !important;
             }
-            
-            /* Título */
-            #laudoContent h1 {
-              color: #1FA65A !important;
-              font-size: 2.25rem !important;
-              font-weight: bold !important;
-            }
-            
-            /* Espaçamentos */
-            #laudoContent .gap-10 {
-              gap: 2.5rem !important;
-            }
-            #laudoContent .gap-4 {
-              gap: 1rem !important;
-            }
-            #laudoContent .gap-1 {
-              gap: 0.25rem !important;
-            }
-            
-            /* Suporte Técnico */
+
+          /* Título */
+          #laudoContent h1 {
+            color: #1FA65A !important;
+          }
+
+          /* Tabelas */
+          #laudoContent table {
+            border: none !important;
+          }
+
+          #laudoContent tr {
+            border: none !important;
+          }
+
+          #laudoContent td, #laudoContent th {
+            border: 1px solid black !important;
+          }
+
+          /* Suporte Técnico */
+          #laudoContent .flex-col.gap-4 > div {
+            display: flex !important;
+            gap: 4px !important;
+          }
+             /* Suporte Técnico */
             #laudoContent .flex-col.md\\:flex-row {
               display: flex !important;
               flex-direction: row !important;
               align-items: center !important;
               gap: 0.25rem !important;
             }
-            
-            /* Tabelas */
-            #laudoContent table {
-              width: 100% !important;
-              border-collapse: collapse !important;
-              margin-bottom: 1rem !important;
-            }
-            #laudoContent td, #laudoContent th {
-              border: 1px solid black !important;
-              padding: 0.5rem !important;
-            }
-            #laudoContent .bg-[#d9d9d9] {
-              background-color: #d9d9d9 !important;
-            }
+
+          /* Químico responsável */
+          #laudoContent .md\\:ml-14 {
+            margin-left: 55px !important;
+            font-size: small !important;
+          }
+
+          /* Endereço */
+          #laudoContent .self-center.md\\:mt-16 {
+            align-self: center !important;
+            margin-top: 10px !important;
+            font-size: small !important;
+            font-style: italic !important;
+          }
+
+          .no-print {
+            display: none !important;
           }
         </style>
       `;
@@ -150,7 +147,7 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
 
   return (
     <div
-      className="w-full h-full md:p-5 flex flex-col gap-10 font-sans relative"
+      className="w-full h-full md:p-5 flex flex-col gap-10 font-sans md:relative"
       ref={laudoRef}
     >
       {/* Cabeçalho */}
@@ -167,7 +164,7 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
       </div>
 
       {/* Tabela de Informações */}
-      <table className="border-collapse">
+      <table className="border-collapse text-xs sm:text-base">
         <tbody>
           {[
             { label: "Produto", value: produto },
@@ -195,7 +192,7 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
       <div className=" flex flex-col ">
         <table className="border-collapse">
           <thead>
-            <tr className="bg-[#d9d9d9]">
+            <tr className="bg-[#d9d9d9] text-xs sm:text-base">
               <th className="border border-black p-2">Análise</th>
               <th className="border border-black p-2">MIN</th>
               <th className="border border-black p-2">MAX</th>
@@ -204,8 +201,8 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
             </tr>
           </thead>
           <tbody>
-            {componentes.map((analise, index) => (
-              <tr key={index} contentEditable>
+            {componentes?.map((analise, index) => (
+              <tr key={index} contentEditable className="text-xs sm:text-base">
                 <td className="border border-black p-2">{analise.nome}</td>
                 <td className="border border-black p-2">{analise.minimo}</td>
                 <td className="border border-black p-2">{analise.maximo}</td>
@@ -217,13 +214,13 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
             ))}
           </tbody>
         </table>
-        <span className="self-center mt-4">
+        <span className="self-center mt-4  text-xs sm:text-base">
           Documento emitido eletronicamente dispensa assinatura.
         </span>
       </div>
 
       {/* Suporte Técnico */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4  text-xs sm:text-base">
         <span className="font-bold">Suporte Técnico</span>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-1">
@@ -247,20 +244,20 @@ export const LaudoAnalise: React.FC<LaudoAnaliseProps> = ({
             <span contentEditable>qualidade@ocq.com.br</span>
           </div>
         </div>
-        <span className="md:ml-14 text-sm">
+        <span className="md:ml-14 text-xs sm:text-base">
           Químico responsável: DOMINGOS FORTUNATO NETO. CRQ 004.150.081
         </span>
       </div>
 
       {/* Rodapé */}
-      <span className="self-center mt-16 text-sm italic pb-8">
+      <span className="self-center md:mt-16 text-xs sm:text-base italic pb-20 md:pb-8">
         RUA MONICA APARECIDA MOREDO, 229 - JARDIM FATIMA - CEP 07177220 - SP -
         Fone: (11) 40002312
       </span>
 
       <button
         onClick={handlePrint}
-        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-4 z-20"
+        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-30 md:bottom-4 z-50"
       >
         Imprimir Laudo
       </button>
