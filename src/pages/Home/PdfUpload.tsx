@@ -36,6 +36,7 @@ export const PdfUpload = () => {
     useUploadPdfMutation();
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [viewMode, setViewMode] = useState<"single" | "compare" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -95,26 +96,94 @@ export const PdfUpload = () => {
     }
   };
 
-  console.log(laudoData);
-
   return (
     <div className="w-full flex h-full relative px-4">
       <div className="absolute inset-0 bg-[#42B186] [clip-path:polygon(100%_100%,0%_100%,100%_0%)] z-0" />
 
-      {laudoData ? (
-        <div className="m-auto w-full h-9/12 md:h-11/12 overflow-y-auto max-w-6xl p-10 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col relative">
-          <LaudoAnalise
-            produto={laudoData.produto}
-            lote={laudoData.lote}
-            quantidade={laudoData.quantidade}
-            data_fabricacao={laudoData.data_fabricacao}
-            data_validade={laudoData.data_validade}
-            nota_fiscal={laudoData.nota_fiscal}
-            elaborado_por={laudoData.elaborado_por}
-            data_elaboracao={laudoData.data_elaboracao}
-            componentes={laudoData.componentes}
-          />
-        </div>
+      {laudoData && selectedFile ? (
+        <>
+          {!viewMode ? (
+            <div className="m-auto w-full max-w-md p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10">
+              <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">
+                Escolha o modo de visualização
+              </h2>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 items-center">
+                  <div className="w-auto flex flex-col gap-2 items-center bg-white p-2 py-6 shadow-xl justify-center rounded-lg relative">
+                    <img
+                      src="/pdf-OCQ.svg"
+                      alt="PDF"
+                      className="object-contain h-[150px]"
+                    />
+                  </div>
+                  <span className="text-sm text-gray-500 max-w-[200px] truncate">
+                    {selectedFile.name}
+                  </span>
+                </div>
+                <div className="flex gap-4 justify-center">
+                  <button
+                    onClick={() => setViewMode("single")}
+                    className="px-6 py-3 bg-[#0DA464] text-white rounded-lg hover:bg-[#3a9d77] transition-colors"
+                  >
+                    Visualização Única
+                  </button>
+                  <button
+                    onClick={() => setViewMode("compare")}
+                    className="px-6 py-3 bg-[#0DA464] text-white rounded-lg hover:bg-[#3a9d77] transition-colors"
+                  >
+                    Comparar PDFs
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`m-auto w-full h-9/12 md:h-10/12 overflow-y-auto ${
+                viewMode === "compare" ? "max-w-full" : "max-w-6xl"
+              } p-10 z-10 flex gap-4`}
+            >
+              {viewMode === "compare" && (
+                <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] h-full">
+                  <embed
+                    src={URL.createObjectURL(selectedFile)}
+                    type="application/pdf"
+                    className="w-full h-full overflow-auto"
+                  />
+                </div>
+              )}
+
+              <div
+                className={`${
+                  viewMode === "compare" ? "flex-1" : "w-full"
+                } bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] p-6 overflow-auto relative`}
+              >
+                <h3 className="text-lg font-semibold mb-4 text-center">
+                  {viewMode === "compare"
+                    ? "Análise Gerada"
+                    : "Resultado da Análise"}
+                </h3>
+                <LaudoAnalise
+                  produto={laudoData.produto}
+                  lote={laudoData.lote}
+                  quantidade={laudoData.quantidade}
+                  data_fabricacao={laudoData.data_fabricacao}
+                  data_validade={laudoData.data_validade}
+                  nota_fiscal={laudoData.nota_fiscal}
+                  elaborado_por={laudoData.elaborado_por}
+                  data_elaboracao={laudoData.data_elaboracao}
+                  componentes={laudoData.componentes}
+                />
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => setViewMode(null)}
+            className="absolute top-4 right-8 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors z-20"
+          >
+            Voltar
+          </button>
+        </>
       ) : (
         <div className="m-auto w-full h-[400px] max-w-3xl p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col relative">
           <h2 className="text-2xl font-normal mb-4 text-center text-gray-600">

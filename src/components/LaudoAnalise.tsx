@@ -16,138 +16,195 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
 
   const handlePrint = useCallback(() => {
     if (laudoRef.current) {
-      const printContent = laudoRef.current.innerHTML;
-      const originalContent = document.body.innerHTML;
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) return;
 
+      const printContent = laudoRef.current.innerHTML;
       const printStyles = `
         <style>
           body {
             font-family: Arial, sans-serif;
-          }
-
-          body * {
-            visibility: hidden;
-          }
-
-          #laudoContent, #laudoContent * {
-            visibility: visible;
+            margin: 0;
           }
 
           #laudoContent {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
             width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
             display: flex !important;
             flex-direction: column !important;
-            gap: 10px !important;
+            gap: 2.5rem !important;
+            padding-bottom: 60px !important; /* Espaço para o endereço */
           }
 
-           /* Cabeçalho */
-            #laudoContent .flex {
-              display: flex !important;
+          /* Cabeçalho */
+          #laudoContent > div:first-child {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-around !important;
+            border: 1px solid black !important;
+            padding: 0.75rem 0 !important;
+            position: relative !important;
+          }
 
-            }
-            #laudoContent .flex-row {
-              flex-direction: row !important;
-            }
-            #laudoContent .items-center {
-              align-items: center !important;
-            }
-            #laudoContent .justify-around {
-              justify-content: space-around !important;
-            }
-            
-            
-            /* Logo */
-            #laudoContent img {
-              height: 100px !important;
-              object-fit: contain !important;
-            }
-            
-            /* Linha vertical */
-            #laudoContent .w-[1px] {
-              display: block !important;
-              width: 1px !important;
-              height: 100px !important;
-              background-color: black !important;
-              margin: 0 20px !important;
-            }
-            
-            /* Remove a classe hidden na impressão */
-            #laudoContent .hidden {
-              display: block !important;
-            }
+          /* Linha vertical */
+          #laudoContent > div:first-child > div {
+            display: block !important;
+            width: 1px !important;
+            height: 100px !important;
+            background-color: black !important;
+            margin: 0 20px !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+          }
+
+          /* Sobrescrever a classe hidden especificamente para a linha vertical */
+          #laudoContent .hidden.w-\\[1px\\] {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+          }
+
+          /* Logo */
+          #laudoContent img {
+            height: 100px !important;
+            object-fit: contain !important;
+            padding: 0.25rem 0 !important;
+          }
 
           /* Título */
           #laudoContent h1 {
             color: #1FA65A !important;
+            font-size: 2.25rem !important;
+            font-weight: bold !important;
           }
 
           /* Tabelas */
           #laudoContent table {
-            border: none !important;
-          }
-
-          #laudoContent tr {
-            border: none !important;
+            width: 100% !important;
+            border-collapse: collapse !important;
           }
 
           #laudoContent td, #laudoContent th {
             border: 1px solid black !important;
+            padding: 4px !important;
+            font-size: 1rem !important;
+          }
+
+          #laudoContent td:first-child {
+            background-color: #d9d9d9 !important;
+            font-weight: bold !important;
           }
 
           /* Suporte Técnico */
-          #laudoContent .flex-col.gap-4 > div {
+          #laudoContent .flex-col {
             display: flex !important;
-            gap: 4px !important;
+            flex-direction: column !important;
+            gap: 1rem !important;
           }
-             /* Suporte Técnico */
-            #laudoContent .flex-col.md\\:flex-row {
-              display: flex !important;
-              flex-direction: row !important;
-              align-items: center !important;
-              gap: 0.25rem !important;
-            }
+
+          /* Correção para os itens de Suporte Técnico */
+          #laudoContent .custom-tipe {
+            display: flex !important;
+            flex-direction: row !important; 
+            align-items: center !important;
+            gap: 0.5rem !important;
+          }
+
+          #laudoContent .custom-tipe span:first-child {
+            font-weight: bold !important;
+          }
+
+          #laudoContent .custom-tipe span {
+            display: inline !important;
+            white-space: nowrap !important;
+          }
+
+          /* Título do Suporte Técnico */
+          #laudoContent .flex-col > span.font-bold {
+            font-weight: bold !important;
+          }
 
           /* Químico responsável */
           #laudoContent .md\\:ml-14 {
             margin-left: 55px !important;
-            font-size: small !important;
+            font-size: 0.875rem !important;
           }
 
           /* Endereço */
-          #laudoContent .self-center.md\\:mt-16 {
-            align-self: center !important;
-            margin-top: 10px !important;
-            font-size: small !important;
+          #laudoContent > span:last-of-type {
+            text-align: center !important;
+            font-size: 0.875rem !important;
             font-style: italic !important;
+            position: fixed !important;
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 100% !important;
           }
 
           .no-print {
             display: none !important;
           }
+
+          [contenteditable] {
+            min-height: 1em !important;
+          }
+
+          /* Mensagem de assinatura eletrônica */
+          #laudoContent .self-center.mt-4 {
+            display: block !important;
+            width: 100% !important;
+            text-align: center !important;
+            margin-top: 1rem !important;
+            font-size: 1rem !important;
+          }
+
+          .button-print {
+            display: none !important;
+          }
+
+          /* Esconder botão de impressão */
+          #laudoContent button,
+          #laudoContent .no-print,
+          .no-print {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+          }
         </style>
       `;
 
-      // Substituir o conteúdo da página
-      document.body.innerHTML =
-        printStyles + `<div id="laudoContent">${printContent}</div>`;
+      // Configurar o novo documento
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Laudo Análise</title>
+            ${printStyles}
+          </head>
+          <body>
+            <div id="laudoContent">${printContent}</div>
+          </body>
+        </html>
+      `);
 
-      window.print();
+      printWindow.document.close();
 
-      // Restaurar o conteúdo original
-      document.body.innerHTML = originalContent;
-
-      // Recriar as referências React e eventos
-      window.location.reload();
+      // Esperar o carregamento do conteúdo
+      printWindow.onload = () => {
+        printWindow.print();
+        printWindow.onafterprint = () => {
+          printWindow.close();
+        };
+      };
     }
   }, []);
 
   return (
     <div
-      className="w-full h-full md:p-5 flex flex-col gap-10 font-sans md:relative"
+      className="w-full h-full md:p-5 flex flex-col gap-10 font-sans relative"
       ref={laudoRef}
     >
       {/* Cabeçalho */}
@@ -223,23 +280,23 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
       <div className="flex flex-col gap-4  text-xs sm:text-base">
         <span className="font-bold">Suporte Técnico</span>
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row gap-1">
+          <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Papel e têxtil:</span>
             <span contentEditable>(11) 2438-8147</span>
           </div>
-          <div className="flex flex-col md:flex-row gap-1">
+          <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Auto Adesivos:</span>
             <span contentEditable>(11) 2436-7944</span>
           </div>
-          <div className="flex flex-col md:flex-row gap-1">
+          <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Tintas:</span>
             <span contentEditable>(11) 2279-9232</span>
           </div>
-          <div className="flex flex-col md:flex-row gap-1">
+          <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Reclamações:</span>
             <span contentEditable>(11) 2436-3588/ 2436-3592</span>
           </div>
-          <div className="flex flex-col md:flex-row gap-1">
+          <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">e-mail:</span>
             <span contentEditable>qualidade@ocq.com.br</span>
           </div>
@@ -257,7 +314,7 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
 
       <button
         onClick={handlePrint}
-        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-30 md:bottom-4 z-50"
+        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-30 md:bottom-23 z-50"
       >
         Imprimir Laudo
       </button>

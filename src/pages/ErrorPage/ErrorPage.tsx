@@ -1,4 +1,3 @@
-import { Button } from "antd";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,14 +10,12 @@ export const ErrorPage: React.FC = () => {
       <p className="text-gray-500 mb-8">
         Desculpe, a página que você está procurando não existe.
       </p>
-      <Button
+      <button
         onClick={() => navigate("/")}
-        size="large"
-        type="text"
         className="px-6 py-3 !bg-[#1FA65A] !text-white rounded-lg hover:!bg-[#59a87b] !border-none transition-colors !font-semibold"
       >
         Voltar para a página inicial
-      </Button>
+      </button>
     </div>
   );
 };
