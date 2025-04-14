@@ -3,7 +3,7 @@ import { ILaudoAnnalistic } from "../../interface/ILaudoAnnalistic";
 
 export const pdfApi = createApi({
   reducerPath: "pdfApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://192.168.50.220:8000" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "https://api-ocq.biofy.tech" }),
   endpoints: (builder) => ({
     uploadPdf: builder.mutation<ILaudoAnnalistic, FormData>({
       query: (formData) => ({

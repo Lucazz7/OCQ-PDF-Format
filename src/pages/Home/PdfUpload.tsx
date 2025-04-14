@@ -238,8 +238,11 @@ export const PdfUpload = () => {
       ) : (
         <div className="m-auto w-full h-[410px] max-w-3xl p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col relative">
           <h2 className="text-xl sm:text-2xl font-normal mb-4 text-center text-gray-600">
-            Envie seus PDFs (máximo{" "}
-            {selectedFiles.length ? `${selectedFiles.length}/5` : 5})
+            {isLoading
+              ? "Convertendo PDFs..."
+              : `Envie seus PDFs (máximo ${
+                  selectedFiles.length ? `${selectedFiles.length}/5` : 5
+                })`}
           </h2>
 
           {isLoading ? (
@@ -331,10 +334,10 @@ export const PdfUpload = () => {
                 <br />
                 ou clique para selecionar
               </p>
-
               <input
                 type="file"
                 accept=".pdf"
+                multiple
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileChange}
