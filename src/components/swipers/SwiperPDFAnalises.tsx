@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Player } from "@lottiefiles/react-lottie-player";
-import { Trash2 } from "lucide-react";
+import { Columns2, Eye, Trash2 } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 // @ts-expect-error
 import "swiper/css";
@@ -108,8 +108,9 @@ export default function SwiperPDFAnalises({
                         setSelectedFileIndex(index);
                         setViewMode("single");
                       }}
-                      className="px-4 py-[5px] bg-[#0DA464] text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-[#0DA464]/80 transition-colors"
+                      className="px-2 py-[5px] bg-[#0DA464] text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-[#0DA464]/80 transition-colors flex items-center gap-2"
                     >
+                      <Eye className="w-4 h-4" />
                       Visualizar
                     </button>
                     <button
@@ -117,8 +118,9 @@ export default function SwiperPDFAnalises({
                         setSelectedFileIndex(index);
                         setViewMode("compare");
                       }}
-                      className="px-4 py-[5px] bg-blue-500 text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-blue-500/80 transition-colors"
+                      className="px-2 py-[5px] bg-blue-500 text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-blue-500/80 transition-colors flex items-center gap-1"
                     >
+                      <Columns2 className="w-4 h-4" />
                       Comparar
                     </button>
                   </div>

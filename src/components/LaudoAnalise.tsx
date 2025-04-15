@@ -276,11 +276,12 @@ export function LaudoAnalise({
                 <td className="border border-black p-2">
                   {analise?.observacao}
                 </td>
-                <td className="absolute right-2 top-1/2 -translate-y-1/2 hidden-tr">
+                <td className="absolute md:-right-3 top-1/2 -translate-y-1/2 hidden-tr">
                   {" "}
                   <button
                     onClick={() => handleRemoveColl(index)}
-                    className="p-1 rounded-full hover:bg-red-500 transition-colors  bg-red-300  cursor-pointer opacity-0 group-hover:opacity-100"
+                    className="p-1 rounded-full hover:bg-red-500 transition-colors bg-red-300  cursor-pointer opacity-0 group-hover:opacity-100"
+                    title="Remover análise"
                   >
                     <X size={16} className="text-white" />
                   </button>
