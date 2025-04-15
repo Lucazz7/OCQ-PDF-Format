@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Player } from "@lottiefiles/react-lottie-player";
 import { ArrowLeft } from "lucide-react";
@@ -20,9 +21,15 @@ export interface PdfAnalise {
   status: "loading" | "success" | "error";
 }
 
+interface PdfPreview {
+  id: number;
+  url: string;
+}
+
 export const PdfUpload = () => {
   const [uploadPdf, { isLoading, isError, reset }] = useUploadPdfMutation();
   const [pdfAnalises, setPdfAnalises] = useState<PdfAnalise[]>([]);
+  const [pdfPreviews, setPdfPreviews] = useState<PdfPreview[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [viewMode, setViewMode] = useState<"single" | "compare" | null>(null);
@@ -62,6 +69,13 @@ export const PdfUpload = () => {
           status: "loading",
         }))
       );
+
+      // Criar previews para todos os arquivos
+      const newPreviews = files.map((file, index) => ({
+        id: index,
+        url: URL.createObjectURL(file),
+      }));
+      setPdfPreviews(newPreviews);
 
       // Processa cada arquivo sequencialmente
       for (let i = 0; i < files.length; i++) {
@@ -218,6 +232,39 @@ export const PdfUpload = () => {
     [selectedFileIndex]
   );
 
+  const handleReorderColl = useCallback(
+    (newOrder: any[]) => {
+      if (selectedFileIndex === null) return;
+      setPdfAnalises((prev) => {
+        // Se não houver mudanças reais, retorna o estado anterior
+        if (prev[selectedFileIndex]?.analise?.componentes === newOrder) {
+          return prev;
+        }
+
+        // Cria uma cópia do array apenas se necessário
+        const newPdfAnalises = [...prev];
+        newPdfAnalises[selectedFileIndex] = {
+          ...newPdfAnalises[selectedFileIndex],
+          analise: {
+            ...newPdfAnalises[selectedFileIndex].analise,
+            componentes: newOrder,
+          },
+        };
+
+        return newPdfAnalises;
+      });
+    },
+    [selectedFileIndex]
+  );
+
+  // Função para limpar os previews quando necessário
+  const clearPreviews = useCallback(() => {
+    pdfPreviews.forEach((preview) => {
+      URL.revokeObjectURL(preview.url);
+    });
+    setPdfPreviews([]);
+  }, [pdfPreviews]);
+
   return (
     <div className="w-full flex h-full relative px-4 py-6 md:py-0">
       <div className="absolute inset-0 bg-[#42B186] [clip-path:polygon(100%_100%,0%_100%,100%_0%)] z-0" />
@@ -253,19 +300,21 @@ export const PdfUpload = () => {
                     data={pdfAnalises[selectedFileIndex!].analise}
                     handleAddColl={handleAddColl}
                     handleRemoveColl={handleRemoveColl}
+                    handleReorderComponents={handleReorderColl}
                   />
                 </div>
               ) : (
                 selectedFileIndex !== null && (
                   <div className="w-full h-full flex flex-col lg:flex-row gap-8 pt-24 md:mt-0">
                     <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] h-full overflow-auto flex items-center justify-center">
-                      <iframe
-                        src={URL.createObjectURL(
-                          pdfAnalises[selectedFileIndex].file
+                      {selectedFileIndex !== null &&
+                        pdfPreviews[selectedFileIndex] && (
+                          <iframe
+                            src={pdfPreviews[selectedFileIndex].url}
+                            className="w-full h-full object-contain"
+                            title="Visualização do PDF"
+                          />
                         )}
-                        className="w-full  h-full object-contain"
-                        title="Visualização do PDF"
-                      />
                     </div>
 
                     <div className="flex-1 h-96 md:h-full bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] p-6 overflow-auto relative">
@@ -273,6 +322,7 @@ export const PdfUpload = () => {
                         data={pdfAnalises[selectedFileIndex].analise}
                         handleAddColl={handleAddColl}
                         handleRemoveColl={handleRemoveColl}
+                        handleReorderComponents={handleReorderColl}
                       />
                     </div>
                   </div>
@@ -288,9 +338,10 @@ export const PdfUpload = () => {
                 : (() => {
                     setSelectedFiles([]);
                     setPdfAnalises([]);
+                    clearPreviews();
                   })()
             }
-            className="absolute top-4 right-8 p-2 bg-white  text-[#0DA464] rounded-full border shadow-xl transition-colors z-20 cursor-pointer"
+            className="absolute top-4 right-8 p-2 bg-white text-[#0DA464] rounded-full border shadow-xl transition-colors z-20 cursor-pointer"
           >
             <ArrowLeft size={16} />
           </button>

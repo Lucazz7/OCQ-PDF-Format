@@ -1,17 +1,111 @@
-import { Plus, X } from "lucide-react";
-import { useCallback, useRef } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  MeasuringStrategy,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Plus, X } from "lucide-react";
+import React, { useCallback, useRef } from "react";
 import { ILaudoAnnalistic } from "../interface/ILaudoAnnalistic";
 
 interface ILaudoAnalise {
   data: ILaudoAnnalistic;
   handleAddColl: () => void;
   handleRemoveColl: (index: number) => void;
+  handleReorderComponents: (result: any) => void;
 }
+
+// Componente para linha sortável
+const SortableTableRow = React.memo(
+  ({
+    analise,
+    index,
+    handleRemoveColl,
+  }: {
+    analise: any;
+    index: number;
+    handleRemoveColl: (index: number) => void;
+  }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({
+        id: index.toString(),
+        transition: {
+          duration: 150,
+          easing: "ease",
+        },
+      });
+
+    // Memoizar o style object para evitar recálculos desnecessários
+    const style = React.useMemo(
+      () => ({
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }),
+      [transform, transition]
+    );
+
+    return (
+      <tr
+        ref={setNodeRef}
+        style={style}
+        className="text-xs sm:text-base h-12 relative group "
+      >
+        <td className="border border-black p-2 w-8 hidden-tr ">
+          <div {...attributes} {...listeners}>
+            <GripVertical size={16} className="cursor-grab" />
+          </div>
+        </td>
+        <td className="border border-black p-2" contentEditable>
+          {analise?.nome}
+        </td>
+        <td className="border border-black p-2" contentEditable>
+          {analise?.minimo}
+        </td>
+        <td className="border border-black p-2" contentEditable>
+          {analise?.maximo}
+        </td>
+        <td className="border border-black p-2" contentEditable>
+          {analise?.valor}
+        </td>
+        <td className="border border-black p-2" contentEditable>
+          {analise?.observacao}
+        </td>
+        <td className="absolute md:-right-3 top-1/2 -translate-y-1/2 hidden-tr">
+          <button
+            onClick={() => handleRemoveColl(index)}
+            className="p-1 rounded-full hover:bg-red-500 transition-colors bg-red-300 cursor-pointer opacity-0 group-hover:opacity-100"
+            title="Remover análise"
+          >
+            <X size={16} className="text-white" />
+          </button>
+        </td>
+      </tr>
+    );
+  },
+  // Adicionar função de comparação personalizada
+  (prevProps, nextProps) => {
+    return (
+      prevProps.index === nextProps.index &&
+      prevProps.analise === nextProps.analise
+    );
+  }
+);
 
 export function LaudoAnalise({
   data,
   handleAddColl,
   handleRemoveColl,
+  handleReorderComponents,
 }: ILaudoAnalise) {
   const laudoRef = useRef<HTMLDivElement>(null);
 
@@ -207,6 +301,31 @@ export function LaudoAnalise({
     }
   }, []);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  function handleDragEnd(event: any) {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = parseInt(active.id);
+      const newIndex = parseInt(over.id);
+
+      // Criar uma nova cópia do array usando structuredClone para evitar mutações
+      const items = structuredClone(data.componentes);
+      const [movedItem] = items.splice(oldIndex, 1);
+      items.splice(newIndex, 0, movedItem);
+
+      handleReorderComponents(items);
+    }
+  }
+
   return (
     <div
       className="w-full h-full md:p-5 flex flex-col gap-10 font-sans relative"
@@ -252,44 +371,44 @@ export function LaudoAnalise({
 
       {/* Tabela de Análises */}
       <div className=" flex flex-col ">
-        <table className="border-collapse">
-          <thead>
-            <tr className="bg-[#d9d9d9] text-xs sm:text-base">
-              <th className="border border-black p-2">Análise</th>
-              <th className="border border-black p-2">MIN</th>
-              <th className="border border-black p-2">MAX</th>
-              <th className="border border-black p-2">Resultado</th>
-              <th className="border border-black p-2">OBS</th>
-            </tr>
-          </thead>
-          <tbody className="relative">
-            {data?.componentes?.map((analise, index) => (
-              <tr
-                key={index}
-                contentEditable
-                className="text-xs sm:text-base h-12 relative group"
-              >
-                <td className="border border-black p-2">{analise?.nome}</td>
-                <td className="border border-black p-2">{analise?.minimo}</td>
-                <td className="border border-black p-2">{analise?.maximo}</td>
-                <td className="border border-black p-2">{analise?.valor}</td>
-                <td className="border border-black p-2">
-                  {analise?.observacao}
-                </td>
-                <td className="absolute md:-right-3 top-1/2 -translate-y-1/2 hidden-tr">
-                  {" "}
-                  <button
-                    onClick={() => handleRemoveColl(index)}
-                    className="p-1 rounded-full hover:bg-red-500 transition-colors bg-red-300  cursor-pointer opacity-0 group-hover:opacity-100"
-                    title="Remover análise"
-                  >
-                    <X size={16} className="text-white" />
-                  </button>
-                </td>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          measuring={{
+            droppable: {
+              strategy: MeasuringStrategy.Always,
+            },
+          }}
+        >
+          <table className="border-collapse">
+            <thead>
+              <tr className="bg-[#d9d9d9] text-xs sm:text-base">
+                <th className="border border-black p-2 w-8 hidden-tr"></th>
+                <th className="border border-black p-2">Análise</th>
+                <th className="border border-black p-2">MIN</th>
+                <th className="border border-black p-2">MAX</th>
+                <th className="border border-black p-2">Resultado</th>
+                <th className="border border-black p-2">OBS</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <SortableContext
+                items={data?.componentes?.map((_, i) => i.toString()) || []}
+                strategy={verticalListSortingStrategy}
+              >
+                {data?.componentes?.map((analise, index) => (
+                  <SortableTableRow
+                    key={index}
+                    analise={analise}
+                    index={index}
+                    handleRemoveColl={handleRemoveColl}
+                  />
+                ))}
+              </SortableContext>
+            </tbody>
+          </table>
+        </DndContext>
         <div className="flex justify-end -mt-6 md:-mt-4 absolute -right-4 md:right-2">
           <button
             onClick={handleAddColl}
