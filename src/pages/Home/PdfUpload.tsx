@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Player } from "@lottiefiles/react-lottie-player";
-import { ArrowLeft, Trash2, Upload } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 // @ts-ignore
 import "swiper/css";
 // @ts-ignore
 import "swiper/css/navigation";
-import { Swiper, SwiperSlide } from "swiper/react";
 import { LaudoAnalise } from "../../components/LaudoAnalise";
+import SwiperPDFAnalises from "../../components/swipers/SwiperPDFAnalises";
+import SwiperSelectFiles from "../../components/swipers/SwiperSelectFiles";
+import UploadFile from "../../components/UploadFile";
 import { ILaudoAnnalistic } from "../../interface/ILaudoAnnalistic";
 import { useUploadPdfMutation } from "../../store/services/pdfApi";
 
-interface PdfAnalise {
+export interface PdfAnalise {
   file: File;
   analise: ILaudoAnnalistic;
   status: "loading" | "success" | "error";
@@ -235,124 +237,13 @@ export const PdfUpload = () => {
                         .length
                     }/${pdfAnalises.length})`}
               </h2>
-              <div className="w-full flex h-full">
-                <Swiper
-                  breakpoints={{
-                    375: {
-                      slidesPerView: 1,
-                      spaceBetween: 20,
-                    },
-                    520: {
-                      slidesPerView: 1,
-                      spaceBetween: 20,
-                    },
-                    620: {
-                      slidesPerView: 2,
-                      spaceBetween: 20,
-                    },
-                    720: {
-                      slidesPerView: 3,
-                      spaceBetween: 20,
-                    },
-                    1024: {
-                      slidesPerView: 3,
-                      spaceBetween: 20,
-                    },
-                  }}
-                  spaceBetween={30}
-                  centeredSlides={pdfAnalises.length <= 1}
-                  className="w-full my-auto relative cursor-grab active:cursor-grabbing"
-                >
-                  {pdfAnalises.map((file, index) => (
-                    <SwiperSlide key={index} className="w-full">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <div
-                          className={`w-44 h-full flex items-center bg-white p-2 py-6 shadow-xl justify-center rounded-lg relative transition-all duration-300 ${
-                            file.status === "error"
-                              ? "border-2 border-red-500"
-                              : file.status === "loading"
-                              ? "border-2 border-blue-500"
-                              : "border-2 border-green-500"
-                          }`}
-                        >
-                          {file.status === "loading" ? (
-                            <Player
-                              autoplay
-                              loop
-                              src={"/lottie/PDF-loading.json"}
-                              className="h-[150px]"
-                            />
-                          ) : (
-                            <img
-                              src="/pdf-OCQ.svg"
-                              alt="PDF"
-                              className="w-full object-contain h-[150px]"
-                            />
-                          )}
-                          {(file.status === "success" ||
-                            file.status === "error") && (
-                            <button
-                              onClick={() => {
-                                setPdfAnalises((prev) =>
-                                  prev.filter((_, i) => i !== index)
-                                );
-                              }}
-                              className="absolute top-2 -right-4 rounded-full p-2 bg-gray-50 shadow-md cursor-pointer"
-                            >
-                              <Trash2 className="w-5 h-5 text-red-500" />
-                            </button>
-                          )}
-                        </div>
-                        <div
-                          key={index}
-                          className="w-full flex items-center flex-col justify-between p-2 rounded gap-2"
-                        >
-                          <span className="text-sm text-gray-500 truncate max-w-[100px]">
-                            {file.file.name}
-                          </span>
-                          {file.status === "success" && (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => {
-                                  setSelectedFileIndex(index);
-                                  setViewMode("single");
-                                }}
-                                className="px-4 py-[5px] bg-[#0DA464] text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-[#0DA464]/80 transition-colors"
-                              >
-                                Visualizar
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedFileIndex(index);
-                                  setViewMode("compare");
-                                }}
-                                className="px-4 py-[5px] bg-blue-500 text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-blue-500/80 transition-colors"
-                              >
-                                Comparar
-                              </button>
-                            </div>
-                          )}
-                          {file.status === "error" && (
-                            <div className="flex flex-col items-center gap-2">
-                              <span className="text-red-500 text-sm">
-                                Erro ao carregar o PDF
-                              </span>
-                              <button
-                                onClick={() =>
-                                  handleRetryUpload(file.file, index)
-                                }
-                                className="px-3 py-1 bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors rounded-lg cursor-pointer"
-                              >
-                                Tentar Novamente
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-              </div>
+              <SwiperPDFAnalises
+                pdfAnalises={pdfAnalises}
+                setPdfAnalises={setPdfAnalises}
+                setSelectedFileIndex={setSelectedFileIndex}
+                setViewMode={setViewMode}
+                handleRetryUpload={handleRetryUpload}
+              />
             </div>
           ) : (
             <div className="m-auto w-full h-full md:h-11/12 md:overflow-hidden max-w-full px-4 md:px-10 z-10 flex gap-6 ">
@@ -426,92 +317,24 @@ export const PdfUpload = () => {
               </div>
             </div>
           ) : selectedFiles.length > 0 ? (
-            <div
-              className="w-full h-full relative"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={handleBrowseClick}
-            >
-              <Swiper
-                breakpoints={{
-                  375: {
-                    slidesPerView: 1,
-                    spaceBetween: 20,
-                  },
-                  400: {
-                    slidesPerView: 2,
-                    spaceBetween: 20,
-                  },
-                  720: {
-                    slidesPerView: 3,
-                    spaceBetween: 20,
-                  },
-                }}
-                spaceBetween={30}
-                className="w-full h-full relative cursor-grab active:cursor-grabbing"
-                centeredSlides={selectedFiles.length <= 1}
-              >
-                {selectedFiles.map((file, index) => (
-                  <SwiperSlide key={index}>
-                    <div className="w-full h-[270px] flex flex-col items-center justify-center gap-2">
-                      <div className="h-full flex items-center bg-white p-2 py-6 shadow-xl justify-center rounded-lg relative">
-                        <img
-                          src="/pdf-OCQ.svg"
-                          alt="PDF"
-                          className="w-full object-contain h-[150px]"
-                        />
-                        <button
-                          onClick={() => {
-                            removeFile(index);
-                          }}
-                          className="absolute top-2 -right-4 rounded-full p-2 bg-gray-50 shadow-md cursor-pointer"
-                        >
-                          <Trash2 className="w-5 h-5 text-red-500" />
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 max-w-[200px] truncate">
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 rounded"
-                        >
-                          <span className="max-w-40 text-sm text-gray-500 truncate">
-                            {file.name}
-                          </span>
-                        </div>
-                      </span>
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
+            <SwiperSelectFiles
+              selectedFiles={selectedFiles}
+              handleDragOver={handleDragOver}
+              handleDragLeave={handleDragLeave}
+              handleDrop={handleDrop}
+              handleBrowseClick={handleBrowseClick}
+              removeFile={removeFile}
+            />
           ) : (
-            <div
-              className={`border-2 border-dashed rounded-lg h-3/4 flex flex-col items-center justify-center cursor-pointer my-auto ${
-                isDragging ? "border-[#0DA464] bg-blue-50" : "border-gray-300"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={handleBrowseClick}
-            >
-              <div className="w-16 h-16 bg-[#0DA464] rounded-full flex items-center justify-center mb-4">
-                <Upload className="w-8 h-8 text-white" />
-              </div>
-              <p className="text-gray-500 text-center">
-                Arraste um arquivo PDF aqui
-                <br />
-                ou clique para selecionar
-              </p>
-              <input
-                type="file"
-                accept=".pdf"
-                multiple
-                className="hidden"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-              />
-            </div>
+            <UploadFile
+              isDragging={isDragging}
+              handleDragOver={handleDragOver}
+              handleDragLeave={handleDragLeave}
+              handleDrop={handleDrop}
+              handleBrowseClick={handleBrowseClick}
+              handleFileChange={handleFileChange}
+              fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
+            />
           )}
           {isError && selectedFiles.length > 0 && (
             <div className="text-center text-red-500 rounded-lg mx-auto text-sm">

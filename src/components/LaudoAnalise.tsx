@@ -297,7 +297,7 @@ export function LaudoAnalise({
             <Plus size={16} />
           </button>
         </div>
-        <span className="self-center mt-4  text-xs sm:text-base">
+        <span className="self-center mt-4 text-xs sm:text-base">
           Documento emitido eletronicamente dispensa assinatura.
         </span>
       </div>
