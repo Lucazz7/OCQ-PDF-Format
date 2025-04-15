@@ -1,17 +1,18 @@
+import { Plus, X } from "lucide-react";
 import { useCallback, useRef } from "react";
 import { ILaudoAnnalistic } from "../interface/ILaudoAnnalistic";
 
-export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
-  produto,
-  lote,
-  quantidade,
-  data_fabricacao,
-  data_validade,
-  nota_fiscal,
-  elaborado_por,
-  data_elaboracao,
-  componentes,
-}) => {
+interface ILaudoAnalise {
+  data: ILaudoAnnalistic;
+  handleAddColl: () => void;
+  handleRemoveColl: (index: number) => void;
+}
+
+export function LaudoAnalise({
+  data,
+  handleAddColl,
+  handleRemoveColl,
+}: ILaudoAnalise) {
   const laudoRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useCallback(() => {
@@ -165,6 +166,10 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
             display: none !important;
           }
 
+          .hidden-tr {
+            display: none !important;
+          }
+
           /* Esconder botão de impressão */
           #laudoContent button,
           #laudoContent .no-print,
@@ -224,14 +229,14 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
       <table className="border-collapse text-xs sm:text-base">
         <tbody>
           {[
-            { label: "Produto", value: produto },
-            { label: "Lote", value: lote },
-            { label: "Quantidade", value: quantidade },
-            { label: "Data de Fabricação", value: data_fabricacao },
-            { label: "Validade", value: data_validade },
-            { label: "Nota Fiscal", value: nota_fiscal },
-            { label: "Elaborado por", value: elaborado_por },
-            { label: "Data de Elaboração", value: data_elaboracao },
+            { label: "Produto", value: data?.produto },
+            { label: "Lote", value: data?.lote },
+            { label: "Quantidade", value: data?.quantidade },
+            { label: "Data de Fabricação", value: data?.data_fabricacao },
+            { label: "Validade", value: data?.data_validade },
+            { label: "Nota Fiscal", value: data?.nota_fiscal },
+            { label: "Elaborado por", value: data?.elaborado_por },
+            { label: "Data de Elaboração", value: data?.data_elaboracao },
           ]?.map((item, index) => (
             <tr key={index} className="border-none">
               <td className="bg-[#d9d9d9] font-bold border border-black p-2">
@@ -257,20 +262,41 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
               <th className="border border-black p-2">OBS</th>
             </tr>
           </thead>
-          <tbody>
-            {componentes?.map((analise, index) => (
-              <tr key={index} contentEditable className="text-xs sm:text-base">
-                <td className="border border-black p-2">{analise.nome}</td>
-                <td className="border border-black p-2">{analise.minimo}</td>
-                <td className="border border-black p-2">{analise.maximo}</td>
-                <td className="border border-black p-2">{analise.valor}</td>
+          <tbody className="relative">
+            {data?.componentes?.map((analise, index) => (
+              <tr
+                key={index}
+                contentEditable
+                className="text-xs sm:text-base h-12 relative group"
+              >
+                <td className="border border-black p-2">{analise?.nome}</td>
+                <td className="border border-black p-2">{analise?.minimo}</td>
+                <td className="border border-black p-2">{analise?.maximo}</td>
+                <td className="border border-black p-2">{analise?.valor}</td>
                 <td className="border border-black p-2">
-                  {analise.observacao}
+                  {analise?.observacao}
+                </td>
+                <td className="absolute right-2 top-1/2 -translate-y-1/2 hidden-tr">
+                  {" "}
+                  <button
+                    onClick={() => handleRemoveColl(index)}
+                    className="p-1 rounded-full hover:bg-red-500 transition-colors  bg-red-300  cursor-pointer opacity-0 group-hover:opacity-100"
+                  >
+                    <X size={16} className="text-white" />
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        <div className="flex justify-end -mt-4 absolute right-2">
+          <button
+            onClick={handleAddColl}
+            className="bg-[#0DA464] text-white p-2 rounded-full cursor-pointer"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
         <span className="self-center mt-4  text-xs sm:text-base">
           Documento emitido eletronicamente dispensa assinatura.
         </span>
@@ -282,23 +308,23 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Papel e têxtil:</span>
-            <span contentEditable>(11) 2438-8147</span>
+            <span>(11) 2438-8147</span>
           </div>
           <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Auto Adesivos:</span>
-            <span contentEditable>(11) 2436-7944</span>
+            <span>(11) 2436-7944</span>
           </div>
           <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Tintas:</span>
-            <span contentEditable>(11) 2279-9232</span>
+            <span>(11) 2279-9232</span>
           </div>
           <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">Reclamações:</span>
-            <span contentEditable>(11) 2436-3588/ 2436-3592</span>
+            <span>(11) 2436-3588/ 2436-3592</span>
           </div>
           <div className="flex flex-col md:flex-row gap-1 custom-tipe">
             <span className="font-bold">e-mail:</span>
-            <span contentEditable>qualidade@ocq.com.br</span>
+            <span>qualidade@ocq.com.br</span>
           </div>
         </div>
         <span className="md:ml-14 text-xs sm:text-base">
@@ -314,10 +340,10 @@ export const LaudoAnalise: React.FC<ILaudoAnnalistic> = ({
 
       <button
         onClick={handlePrint}
-        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-30 md:bottom-23 z-50"
+        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-30 md:bottom-23 z-50 cursor-pointer"
       >
         Imprimir Laudo
       </button>
     </div>
   );
-};
+}

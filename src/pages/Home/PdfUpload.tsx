@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Player } from "@lottiefiles/react-lottie-player";
-import { Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Trash2, Upload } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 // @ts-ignore
@@ -15,6 +15,7 @@ import { useUploadPdfMutation } from "../../store/services/pdfApi";
 interface PdfAnalise {
   file: File;
   analise: ILaudoAnnalistic;
+  status: "loading" | "success" | "error";
 }
 
 export const PdfUpload = () => {
@@ -50,21 +51,44 @@ export const PdfUpload = () => {
   );
 
   const handleUpload = useCallback(
-    async (file: File) => {
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        const response = await uploadPdf(formData).unwrap();
+    async (files: File[]) => {
+      // Inicializa o estado com todos os arquivos em loading
+      setPdfAnalises(
+        files.map((file) => ({
+          file,
+          analise: {} as ILaudoAnnalistic,
+          status: "loading",
+        }))
+      );
 
-        setPdfAnalises((prev) => [
-          ...prev,
-          {
-            file: file,
-            analise: response,
-          },
-        ]);
-      } catch (error) {
-        console.error("Erro ao fazer upload do PDF:", error);
+      // Processa cada arquivo sequencialmente
+      for (let i = 0; i < files.length; i++) {
+        try {
+          const formData = new FormData();
+          formData.append("file", files[i]);
+          const response = await uploadPdf(formData).unwrap();
+
+          setPdfAnalises((prev) => {
+            const newAnalises = [...prev];
+            newAnalises[i] = {
+              file: files[i],
+              analise: response,
+              status: "success",
+            };
+            return newAnalises;
+          });
+        } catch (error) {
+          console.error("Erro ao fazer upload do PDF:", error);
+          setPdfAnalises((prev) => {
+            const newAnalises = [...prev];
+            newAnalises[i] = {
+              file: files[i],
+              analise: {} as ILaudoAnnalistic,
+              status: "error",
+            };
+            return newAnalises;
+          });
+        }
       }
     },
     [uploadPdf]
@@ -102,6 +126,96 @@ export const PdfUpload = () => {
     reset();
   };
 
+  const handleRetryUpload = useCallback(
+    async (file: File, index: number) => {
+      try {
+        setPdfAnalises((prev) => {
+          const newAnalises = [...prev];
+          newAnalises[index] = {
+            file,
+            analise: {} as ILaudoAnnalistic,
+            status: "loading",
+          };
+          return newAnalises;
+        });
+
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await uploadPdf(formData).unwrap();
+
+        setPdfAnalises((prev) => {
+          const newAnalises = [...prev];
+          newAnalises[index] = {
+            file,
+            analise: response,
+            status: "success",
+          };
+          return newAnalises;
+        });
+      } catch (error) {
+        console.error("Erro ao fazer upload do PDF:", error);
+        setPdfAnalises((prev) => {
+          const newAnalises = [...prev];
+          newAnalises[index] = {
+            file,
+            analise: {} as ILaudoAnnalistic,
+            status: "error",
+          };
+          return newAnalises;
+        });
+      }
+    },
+    [uploadPdf]
+  );
+
+  const handleAddColl = useCallback(() => {
+    setPdfAnalises((prev) => {
+      const findPdfSelect = prev
+        .find((_, index) => index === selectedFileIndex)
+        ?.analise.componentes.concat({
+          maximo: "",
+          minimo: "",
+          nome: "",
+          observacao: "",
+          valor: "",
+        });
+      if (findPdfSelect) {
+        return prev.map((pdf, index) =>
+          index === selectedFileIndex
+            ? {
+                ...pdf,
+                analise: { ...pdf.analise, componentes: findPdfSelect },
+              }
+            : pdf
+        );
+      }
+      return prev;
+    });
+  }, [selectedFileIndex]);
+
+  const handleRemoveColl = useCallback(
+    (indexToRemove: number) => {
+      setPdfAnalises((prev) => {
+        const findPdfSelect = prev
+          .find((_, index) => index === selectedFileIndex)
+          ?.analise.componentes.filter((_, index) => index !== indexToRemove);
+
+        if (findPdfSelect) {
+          return prev.map((pdf, index) =>
+            index === selectedFileIndex
+              ? {
+                  ...pdf,
+                  analise: { ...pdf.analise, componentes: findPdfSelect },
+                }
+              : pdf
+          );
+        }
+        return prev;
+      });
+    },
+    [selectedFileIndex]
+  );
+
   return (
     <div className="w-full flex h-full relative px-4">
       <div className="absolute inset-0 bg-[#42B186] [clip-path:polygon(100%_100%,0%_100%,100%_0%)] z-0" />
@@ -109,18 +223,30 @@ export const PdfUpload = () => {
       {pdfAnalises.length > 0 ? (
         <>
           {!viewMode ? (
-            <div className="m-auto w-full max-w-md p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10">
+            <div className="m-auto w-full h-[420px] max-w-3xl p-2 md:p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col ">
               <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">
-                Arquivos Analisados
+                {isLoading
+                  ? `Convertendo PDFs... (${
+                      pdfAnalises.filter((pdf) => pdf.status === "success")
+                        .length
+                    }/${pdfAnalises.length})`
+                  : `Arquivos formatados (${
+                      pdfAnalises.filter((pdf) => pdf.status === "success")
+                        .length
+                    }/${pdfAnalises.length})`}
               </h2>
-              <div className="flex flex-col gap-4">
+              <div className="w-full flex h-full">
                 <Swiper
                   breakpoints={{
                     375: {
                       slidesPerView: 1,
                       spaceBetween: 20,
                     },
-                    400: {
+                    520: {
+                      slidesPerView: 1,
+                      spaceBetween: 20,
+                    },
+                    620: {
                       slidesPerView: 2,
                       spaceBetween: 20,
                     },
@@ -128,56 +254,99 @@ export const PdfUpload = () => {
                       slidesPerView: 3,
                       spaceBetween: 20,
                     },
+                    1024: {
+                      slidesPerView: 3,
+                      spaceBetween: 20,
+                    },
                   }}
                   spaceBetween={30}
-                  className="w-full h-full relative cursor-grab active:cursor-grabbing"
                   centeredSlides={pdfAnalises.length <= 1}
+                  className="w-full my-auto relative cursor-grab active:cursor-grabbing"
                 >
                   {pdfAnalises.map((file, index) => (
-                    <SwiperSlide key={index}>
-                      <div className="w-full flex flex-col items-center gap-2">
-                        <div className="min-w-44 h-full flex items-center bg-white p-2 py-6 shadow-xl justify-center rounded-lg relative">
-                          <img
-                            src="/pdf-OCQ.svg"
-                            alt="PDF"
-                            className="w-full object-contain h-[150px]"
-                          />
-                          <button
-                            onClick={() => {
-                              removeFile(index);
-                            }}
-                            className="absolute top-2 -right-4 rounded-full p-2 bg-gray-50 shadow-md cursor-pointer"
-                          >
-                            <Trash2 className="w-5 h-5 text-red-500" />
-                          </button>
+                    <SwiperSlide key={index} className="w-full">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div
+                          className={`w-44 h-full flex items-center bg-white p-2 py-6 shadow-xl justify-center rounded-lg relative transition-all duration-300 ${
+                            file.status === "error"
+                              ? "border-2 border-red-500"
+                              : file.status === "loading"
+                              ? "border-2 border-blue-500"
+                              : "border-2 border-green-500"
+                          }`}
+                        >
+                          {file.status === "loading" ? (
+                            <Player
+                              autoplay
+                              loop
+                              src={"/lottie/PDF-loading.json"}
+                              className="h-[150px]"
+                            />
+                          ) : (
+                            <img
+                              src="/pdf-OCQ.svg"
+                              alt="PDF"
+                              className="w-full object-contain h-[150px]"
+                            />
+                          )}
+                          {(file.status === "success" ||
+                            file.status === "error") && (
+                            <button
+                              onClick={() => {
+                                setPdfAnalises((prev) =>
+                                  prev.filter((_, i) => i !== index)
+                                );
+                              }}
+                              className="absolute top-2 -right-4 rounded-full p-2 bg-gray-50 shadow-md cursor-pointer"
+                            >
+                              <Trash2 className="w-5 h-5 text-red-500" />
+                            </button>
+                          )}
                         </div>
                         <div
                           key={index}
-                          className="w-full flex items-center flex-col justify-between p-2 bg-gray-50 rounded gap-2"
+                          className="w-full flex items-center flex-col justify-between p-2 rounded gap-2"
                         >
-                          <span className="text-sm text-gray-500 truncate">
+                          <span className="text-sm text-gray-500 truncate max-w-[100px]">
                             {file.file.name}
                           </span>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {
-                                setSelectedFileIndex(index);
-                                setViewMode("single");
-                              }}
-                              className="px-4 py-[5px] bg-[#0DA464] text-white text-sm rounded font-semibold"
-                            >
-                              Visualizar
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedFileIndex(index);
-                                setViewMode("compare");
-                              }}
-                              className="px-4 py-[5px] bg-blue-500 text-white text-sm rounded font-semibold"
-                            >
-                              Comparar
-                            </button>
-                          </div>
+                          {file.status === "success" && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setSelectedFileIndex(index);
+                                  setViewMode("single");
+                                }}
+                                className="px-4 py-[5px] bg-[#0DA464] text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-[#0DA464]/80 transition-colors"
+                              >
+                                Visualizar
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedFileIndex(index);
+                                  setViewMode("compare");
+                                }}
+                                className="px-4 py-[5px] bg-blue-500 text-white text-sm font-semibold rounded-lg cursor-pointer hover:bg-blue-500/80 transition-colors"
+                              >
+                                Comparar
+                              </button>
+                            </div>
+                          )}
+                          {file.status === "error" && (
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-red-500 text-sm">
+                                Erro ao carregar o PDF
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleRetryUpload(file.file, index)
+                                }
+                                className="px-3 py-1 bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors rounded-lg cursor-pointer"
+                              >
+                                Tentar Novamente
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </SwiperSlide>
@@ -186,17 +355,18 @@ export const PdfUpload = () => {
               </div>
             </div>
           ) : (
-            <div className="m-auto w-full h-9/12 md:h-10/12 overflow-y-auto max-w-full p-10 z-10 flex gap-4">
+            <div className="m-auto w-full h-9/12 md:h-10/12 overflow-hidden max-w-full md:p-10 z-10 flex gap-4">
               {viewMode === "single" ? (
-                <div className="w-9/12 flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] p-6 overflow-auto relative">
-                  <h3 className="text-lg font-semibold mb-4 text-center">
-                    Análise do PDF
-                  </h3>
-                  <LaudoAnalise {...pdfAnalises[selectedFileIndex!].analise} />
+                <div className="m-auto max-w-[1024px] h-full flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] relative overflow-auto p-6">
+                  <LaudoAnalise
+                    data={pdfAnalises[selectedFileIndex!].analise}
+                    handleAddColl={handleAddColl}
+                    handleRemoveColl={handleRemoveColl}
+                  />
                 </div>
               ) : (
                 selectedFileIndex !== null && (
-                  <>
+                  <div className="w-full flex flex-col lg:flex-row gap-4">
                     <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] h-full">
                       <embed
                         src={URL.createObjectURL(
@@ -208,14 +378,13 @@ export const PdfUpload = () => {
                     </div>
 
                     <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] p-6 overflow-auto relative">
-                      <h3 className="text-lg font-semibold mb-4 text-center">
-                        Análise do PDF
-                      </h3>
                       <LaudoAnalise
-                        {...pdfAnalises[selectedFileIndex].analise}
+                        data={pdfAnalises[selectedFileIndex].analise}
+                        handleAddColl={handleAddColl}
+                        handleRemoveColl={handleRemoveColl}
                       />
                     </div>
-                  </>
+                  </div>
                 )
               )}
             </div>
@@ -230,9 +399,9 @@ export const PdfUpload = () => {
                     setPdfAnalises([]);
                   })()
             }
-            className="absolute top-4 right-8 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors z-20"
+            className="absolute top-4 right-8 p-2 bg-white  text-[#0DA464] rounded-full border shadow-xl transition-colors z-20 cursor-pointer"
           >
-            Voltar
+            <ArrowLeft size={16} />
           </button>
         </>
       ) : (
@@ -304,9 +473,9 @@ export const PdfUpload = () => {
                       <span className="text-sm text-gray-500 max-w-[200px] truncate">
                         <div
                           key={index}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                          className="flex items-center justify-between p-2 rounded"
                         >
-                          <span className="text-sm text-gray-500 truncate">
+                          <span className="max-w-40 text-sm text-gray-500 truncate">
                             {file.name}
                           </span>
                         </div>
@@ -354,9 +523,7 @@ export const PdfUpload = () => {
           {selectedFiles.length > 0 && !isLoading && (
             <div className="mt-7 flex flex-col items-center absolute -bottom-5 left-0 right-0">
               <button
-                onClick={() =>
-                  selectedFiles.forEach((file) => handleUpload(file))
-                }
+                onClick={() => handleUpload(selectedFiles)}
                 className="px-8 py-2 bg-[#0DA464] text-white rounded-full hover:bg-[#3a9d77] transition-colors cursor-pointer"
               >
                 Enviar PDFs
