@@ -289,7 +289,7 @@ export function LaudoAnalise({
             ))}
           </tbody>
         </table>
-        <div className="flex justify-end -mt-4 absolute right-2">
+        <div className="flex justify-end -mt-6 md:-mt-4 absolute -right-4 md:right-2">
           <button
             onClick={handleAddColl}
             className="bg-[#0DA464] text-white p-2 rounded-full cursor-pointer"
@@ -340,7 +340,7 @@ export function LaudoAnalise({
 
       <button
         onClick={handlePrint}
-        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-30 md:bottom-23 z-50 cursor-pointer"
+        className="px-8 py-2 border-2 border-[#0DA464] text-[#0DA464] rounded-full bg-white hover:bg-[#3a9d77] hover:text-white hover:border-[#3a9d77] transition-colors mt-4 self-center font-semibold no-print fixed bottom-1 md:bottom-4 z-50 cursor-pointer"
       >
         Imprimir Laudo
       </button>

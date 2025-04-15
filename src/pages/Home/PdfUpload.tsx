@@ -217,13 +217,13 @@ export const PdfUpload = () => {
   );
 
   return (
-    <div className="w-full flex h-full relative px-4">
+    <div className="w-full flex h-full relative px-4 py-6 md:py-0">
       <div className="absolute inset-0 bg-[#42B186] [clip-path:polygon(100%_100%,0%_100%,100%_0%)] z-0" />
 
       {pdfAnalises.length > 0 ? (
         <>
           {!viewMode ? (
-            <div className="m-auto w-full h-[420px] max-w-3xl p-2 md:p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col ">
+            <div className="m-auto w-full md:h-[420px] max-w-3xl p-2 md:p-7 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] z-10 flex flex-col ">
               <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">
                 {isLoading
                   ? `Convertendo PDFs... (${
@@ -355,7 +355,7 @@ export const PdfUpload = () => {
               </div>
             </div>
           ) : (
-            <div className="m-auto w-full h-9/12 md:h-10/12 overflow-hidden max-w-full md:p-10 z-10 flex gap-4">
+            <div className="m-auto w-full h-full md:h-11/12 md:overflow-hidden max-w-full px-4 md:px-10 z-10 flex gap-6 ">
               {viewMode === "single" ? (
                 <div className="m-auto max-w-[1024px] h-full flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] relative overflow-auto p-6">
                   <LaudoAnalise
@@ -366,18 +366,18 @@ export const PdfUpload = () => {
                 </div>
               ) : (
                 selectedFileIndex !== null && (
-                  <div className="w-full flex flex-col lg:flex-row gap-4">
-                    <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] h-full">
-                      <embed
+                  <div className="w-full h-full flex flex-col lg:flex-row gap-8 pt-24 md:mt-0">
+                    <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] h-full overflow-auto flex items-center justify-center">
+                      <iframe
                         src={URL.createObjectURL(
                           pdfAnalises[selectedFileIndex].file
                         )}
-                        type="application/pdf"
-                        className="w-full h-full overflow-auto"
+                        className="w-full  h-full object-contain"
+                        title="Visualização do PDF"
                       />
                     </div>
 
-                    <div className="flex-1 bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] p-6 overflow-auto relative">
+                    <div className="flex-1 h-96 md:h-full bg-white rounded-lg shadow-md border-t-10 border-t-[#0DA464] p-6 overflow-auto relative">
                       <LaudoAnalise
                         data={pdfAnalises[selectedFileIndex].analise}
                         handleAddColl={handleAddColl}

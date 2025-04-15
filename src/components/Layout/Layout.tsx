@@ -5,7 +5,7 @@ export default function Layout() {
   return (
     <div className="flex h-svh md:h-screen w-screen flex-col overflow-hidden relative">
       <Navbar />
-      <div className="h-full w-full overflow-x-hidden overflow-y-auto pb-4 md:pb-0">
+      <div className="h-full w-full overflow-x-hidden overflow-y-auto md:pb-0">
         <Outlet />
       </div>
     </div>
